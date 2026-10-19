@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>דשבורד מקדמות וחיסכון | 2026</title>
+    <link rel="stylesheet" href="Finance-Dashboard-2026-Share.css" />
+  </head>
+  <body>
+    <aside>
+      <div class="logo">◈ FINANCE DESK</div>
+      <div class="subtitle">מקדמות • ביטוח לאומי • חיסכון</div>
+      <button class="nav active" data-tab="overview">▦ סקירה כללית</button
+      ><button class="nav" data-tab="income">₪ מס הכנסה ומקדמות</button
+      ><button class="nav" data-tab="social">◉ ביטוח לאומי</button
+      ><button class="nav" data-tab="savings">↗ פנסיה והשתלמות</button
+      ><button class="nav" data-tab="settings">⚙ נתונים והנחות</button>
+    </aside>
+    <main>
+      <div class="top">
+        <div>
+          <div class="eyebrow">דוח עבודה אינטראקטיבי / שנת מס 2026</div>
+          <h1>דשבורד מקדמות וחיסכון</h1>
+          <div class="small">
+            עצמאי יחיד · תחזית ינואר–דצמבר 2026 · הנתונים נשמרים בדפדפן זה
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="export">↓ יצוא נתונים</button
+          ><button class="btn" id="importBtn">↑ יבוא נתונים</button
+          ><input
+            type="file"
+            id="importFile"
+            class="fileinput"
+            accept=".json,application/json"
+          /><button class="btn" id="print">הדפסה</button
+          ><button class="btn primary" id="reset">איפוס</button>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip">הכנסה חייבת: <b id="chipProfit"></b></span
+        ><span class="chip">4.5 נקודות זיכוי (הנחת בסיס)</span
+        ><span class="chip">נתוני פעילות עד ספטמבר</span>
+      </div>
+      <section id="overview" class="tab">
+        <div class="kpis">
+          <div class="card kpi">
+            <div class="label">מחזור שנתי חזוי</div>
+            <div class="value" id="revenue"></div>
+            <div class="small">מחזור עד ספטמבר + תחזית</div>
+          </div>
+          <div class="card kpi">
+            <div class="label">מס הכנסה שנתי משוער</div>
+            <div class="value" id="incomeTax"></div>
+            <div class="small">לפני הטבות הפקדות אישיות</div>
+          </div>
+          <div class="card kpi">
+            <div class="label">שיעור מקדמות מחושב</div>
+            <div class="value" id="advanceRate"></div>
+            <div class="small">מס שנתי / מחזור צפוי</div>
+          </div>
+          <div class="card kpi">
+            <div class="label">חיסכון מס מהפקדות מלאות</div>
+            <div class="value positive" id="totalSaving"></div>
+            <div class="small">אומדן, בהנחת מימוש כל היעדים</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <div class="section-title">תמונת מצב — מס ומקדמות</div>
+            <div class="metric">
+              <span>מקדמות מחושבות עד ספטמבר</span><b id="advanceTarget"></b>
+            </div>
+            <div class="metric">
+              <span>שולם + נוכה במקור</span><b id="advancePaid"></b>
+            </div>
+            <div class="metric">
+              <span>פער לעומת החישוב</span><b id="advanceGap"></b>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-caption">
+                <span>שיעור כיסוי המקדמות המחושבות</span
+                ><b id="advanceCoverage"></b>
+              </div>
+              <div class="bar"><div id="advanceBar"></div></div>
+            </div>
+            <button class="btn" data-goto="income">הזנת מקדמות ←</button>
+          </div>
+          <div class="card">
+            <div class="section-title">מצב הפקדות</div>
+            <div class="metric">
+              <span>יעד פנסיה שנתי</span><b id="pensionGoal"></b>
+            </div>
+            <div class="metric">
+              <span>נותר להפקדה לפנסיה</span><b id="pensionRemain"></b>
+            </div>
+            <div class="metric">
+              <span>יעד קרן השתלמות שנתי</span><b id="studyGoal"></b>
+            </div>
+            <div class="metric">
+              <span>נותר להפקדה לקרן השתלמות</span><b id="studyRemain"></b>
+            </div>
+            <button class="btn" data-goto="savings">פירוט חיסכון ←</button>
+          </div>
+          <div class="card">
+            <div class="section-title">מחזור הכנסות חודשי</div>
+            <div class="small">
+              ינואר–ספטמבר לפי סך המחזור, אוקטובר–דצמבר תחזית חודשית.
+            </div>
+            <div class="chart" id="revenueChart"></div>
+            <p class="small chart-note">
+              כחול בהיר = תחזית. בהיעדר פירוט חודשי יונח מחזור שווה לכל אחד
+              מתשעת החודשים הראשונים.
+            </p>
+          </div>
+          <div class="card">
+            <div class="section-title">מס לפני ואחרי הפקדות</div>
+            <div class="metric">
+              <span>לפני הפקדות</span><b id="taxBefore"></b>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar"><div class="bar-fill-full"></div></div>
+            </div>
+            <div class="metric">
+              <span>אחרי מלוא ההפקדות</span><b id="taxAfter"></b>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar alt"><div id="taxAfterBar"></div></div>
+            </div>
+            <div class="result-pill">
+              חיסכון משוער: <span id="savingRepeat"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="income" class="tab hidden">
+        <div class="grid">
+          <div class="card">
+            <h2 class="section-title">מקדמות מס הכנסה</h2>
+            <div class="field-grid">
+              <div class="field">
+                <label>מקדמות ששולמו עד ספטמבר (₪)</label
+                ><input type="number" min="0" data-key="taxPaid" />
+              </div>
+              <div class="field">
+                <label>ניכוי מס במקור עד ספטמבר (₪)</label
+                ><input type="number" min="0" data-key="withheld" />
+              </div>
+            </div>
+            <div class="metric">
+              <span>אחוז מחושב מהמחזור</span><b id="taxRate2"></b>
+            </div>
+            <div class="metric">
+              <span>מקדמות מחושבות עד ספטמבר</span><b id="taxTarget2"></b>
+            </div>
+            <div class="metric">
+              <span>פער שנותר לעומת האומדן</span><b id="taxGap2"></b>
+            </div>
+            <div class="notice">
+              השיעור המוצג הוא שיעור מומלץ לפי תחזית, ולא שיעור המקדמות הרשמי
+              שנקבע לעסק. הפער אינו חוב למס הכנסה ואינו כולל הפרשי הצמדה או
+              קנסות.
+            </div>
+          </div>
+          <div class="card">
+            <h2 class="section-title">איך חישבנו?</h2>
+            <div class="metric">
+              <span>מחזור חזוי שנתי</span><b id="annualRev2"></b>
+            </div>
+            <div class="metric">
+              <span>הכנסה חייבת לפני ניכויים אישיים</span><b id="profit2"></b>
+            </div>
+            <div class="metric">
+              <span>אומדן מס שנתי</span><b id="tax2"></b>
+            </div>
+            <div class="metric">
+              <span>מחזור שהופק עד ספטמבר</span><b id="rev9"></b>
+            </div>
+            <p class="small">
+              אפשר לשנות את הנחות הבסיס בלשונית נתונים והנחות. המס השנתי הוא
+              אומדן חיצוני שנקבע על בסיס החישוב הקודם, ולא מחושב מחדש אוטומטית
+              כאשר משנים רווח.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="social" class="tab hidden">
+        <div class="grid">
+          <div class="card">
+            <h2 class="section-title">ביטוח לאומי ובריאות</h2>
+            <div class="metric">
+              <span>הכנסה חודשית משוערת לפני תקרה</span><b id="niBase"></b>
+            </div>
+            <div class="metric">
+              <span>בסיס לחיוב, עד תקרה</span><b id="niCapped"></b>
+            </div>
+            <div class="metric">
+              <span>מקדמה חודשית משוערת</span><b id="niMonthly"></b>
+            </div>
+            <div class="metric">
+              <span>חיוב משוער ינואר–ספטמבר</span><b id="niTarget"></b>
+            </div>
+            <div class="metric">
+              <span>פער לעומת תשלומים בפועל</span><b id="niGap"></b>
+            </div>
+          </div>
+          <div class="card">
+            <h2 class="section-title">תשלומים שבוצעו</h2>
+            <div class="field">
+              <label>ביטוח לאומי ששולם עד ספטמבר (₪)</label
+              ><input type="number" min="0" data-key="niPaid" />
+            </div>
+            <div class="notice">
+              זהו אומדן למעקב, לא דרישת תשלום רשמית. סכום המקדמה החודשית צריך
+              להיבדק מול הודעת המקדמות והסטטוס האישי בביטוח הלאומי.
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="savings" class="tab hidden">
+        <div class="grid">
+          <div class="card">
+            <h2 class="section-title">פנסיה</h2>
+            <div class="metric">
+              <span>פנסיית חובה שנתית (אומדן)</span
+              ><b id="pensionMandatory"></b>
+            </div>
+            <div class="metric">
+              <span>הפקדה מומלצת לשנה</span><b id="pensionGoal2"></b>
+            </div>
+            <div class="field spaced-field">
+              <label>הפקדות שבוצעו עד כה (₪)</label
+              ><input type="number" min="0" data-key="pensionPaid" />
+            </div>
+            <div class="metric">
+              <span>נותר להשלמת פנסיית חובה</span
+              ><b id="pensionMandatoryGap"></b>
+            </div>
+            <div class="metric">
+              <span>נותר להשלמת ההמלצה</span><b id="pensionRemaining2"></b>
+            </div>
+            <div class="metric">
+              <span>חיסכון מס משוער בפנסיה, בהפקדה מלאה</span
+              ><b id="pensionTaxSave"></b>
+            </div>
+          </div>
+          <div class="card">
+            <h2 class="section-title">קרן השתלמות</h2>
+            <div class="metric">
+              <span>הפקדה מומלצת לשנה</span><b id="studyGoal2"></b>
+            </div>
+            <div class="field spaced-field">
+              <label>הפקדות שבוצעו עד כה (₪)</label
+              ><input type="number" min="0" data-key="studyPaid" />
+            </div>
+            <div class="metric">
+              <span>נותר להשלמת ההמלצה</span><b id="studyRemaining2"></b>
+            </div>
+            <div class="metric">
+              <span>חיסכון מס משוער בהפקדה מלאה</span><b id="studyTaxSave"></b>
+            </div>
+            <div class="notice">
+              סכומי החיסכון במס מוצגים בגין הפקדות מלאות ליעדים. הם אינם משקפים
+              בהכרח את ההטבה שטרם נוצלה, והיא תלויה בהפקדות בפועל ובתנאי הזכאות.
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="settings" class="tab hidden">
+        <div class="card">
+          <h2 class="section-title">נתוני בסיס והנחות לחישוב</h2>
+          <div class="field-grid" id="settingsFields"></div>
+          <div class="notice">
+            עריכת הכנסה חייבת, נקודות זיכוי או תחזית מחזור לא מחשבת אוטומטית מס
+            חדש. כדי לא להציג אומדן מס מטעה יש לעדכן את שדה ״מס שנתי לפני
+            הפקדות״ בהתאם לחישוב מס מקצועי. כל המספרים בתחילת הדרך הם אומדני תיק
+            2026 מהשיחה הקודמת, אינם שומה או הוראת תשלום.
+          </div>
+        </div>
+      </section>
+      <div class="foot">
+        אפליקציה מקומית: המידע נשמר בדפדפן הנוכחי בלבד (localStorage). לא מועבר
+        לשרת. מומלץ לייצא גיבוי לפני מעבר למכשיר אחר.
+      </div>
+    </main>
+    <script src="Finance-Dashboard-2026-Share.js" defer></script>
+  </body>
+</html>
