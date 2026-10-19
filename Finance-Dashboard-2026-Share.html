@@ -22,25 +22,29 @@
           <div class="eyebrow">דוח עבודה אינטראקטיבי / שנת מס 2026</div>
           <h1>דשבורד מקדמות וחיסכון</h1>
           <div class="small">
-            עצמאי יחיד · תחזית ינואר–דצמבר 2026 · הנתונים נשמרים בדפדפן זה
+            עצמאי יחיד · תחזית ינואר–דצמבר 2026 · תצוגה בלבד, ללא שמירת נתונים
           </div>
         </div>
         <div class="actions">
-          <button class="btn" id="export">↓ יצוא נתונים</button
-          ><button class="btn" id="importBtn">↑ יבוא נתונים</button
+          <button class="btn" id="export">↓ קובץ תבנית</button
+          ><button class="btn" id="importBtn">↑ טעינת קובץ</button
           ><input
             type="file"
             id="importFile"
             class="fileinput"
-            accept=".json,application/json"
+            accept=".xlsx,.xls,.csv,.json"
           /><button class="btn" id="print">הדפסה</button
-          ><button class="btn primary" id="reset">איפוס</button>
+          ><button class="btn primary" id="reset">ניקוי</button>
         </div>
       </div>
       <div class="chips">
         <span class="chip">הכנסה חייבת: <b id="chipProfit"></b></span
-        ><span class="chip">4.5 נקודות זיכוי (הנחת בסיס)</span
+        ><span class="chip">נקודות זיכוי: <b id="chipCredits"></b></span
         ><span class="chip">נתוני פעילות עד ספטמבר</span>
+      </div>
+      <div class="notice" id="emptyState">
+        לא נטענו נתונים. יש לטעון קובץ Excel ‏(xlsx/xls), CSV או JSON באמצעות ״טעינת קובץ״. ניתן להוריד
+        ״קובץ תבנית״ ולמלא בו את הערכים. הנתונים מוצגים בלבד ואינם נשמרים.
       </div>
       <section id="overview" class="tab">
         <div class="kpis">
@@ -84,7 +88,7 @@
               </div>
               <div class="bar"><div id="advanceBar"></div></div>
             </div>
-            <button class="btn" data-goto="income">הזנת מקדמות ←</button>
+            <button class="btn" data-goto="income">פירוט מקדמות ←</button>
           </div>
           <div class="card">
             <div class="section-title">מצב הפקדות</div>
@@ -137,15 +141,9 @@
         <div class="grid">
           <div class="card">
             <h2 class="section-title">מקדמות מס הכנסה</h2>
-            <div class="field-grid">
-              <div class="field">
-                <label>מקדמות ששולמו עד ספטמבר (₪)</label
-                ><input type="number" min="0" data-key="taxPaid" />
-              </div>
-              <div class="field">
-                <label>ניכוי מס במקור עד ספטמבר (₪)</label
-                ><input type="number" min="0" data-key="withheld" />
-              </div>
+            <div>
+              <div class="metric"><span>מקדמות ששולמו עד ספטמבר</span><b id="taxPaid"></b></div>
+              <div class="metric"><span>ניכוי מס במקור עד ספטמבר</span><b id="withheld"></b></div>
             </div>
             <div class="metric">
               <span>אחוז מחושב מהמחזור</span><b id="taxRate2"></b>
@@ -177,9 +175,8 @@
               <span>מחזור שהופק עד ספטמבר</span><b id="rev9"></b>
             </div>
             <p class="small">
-              אפשר לשנות את הנחות הבסיס בלשונית נתונים והנחות. המס השנתי הוא
-              אומדן חיצוני שנקבע על בסיס החישוב הקודם, ולא מחושב מחדש אוטומטית
-              כאשר משנים רווח.
+              הנחות הבסיס מוצגות בלשונית נתונים והנחות, כפי שנטענו מהקובץ. המס
+              השנתי נלקח מהקובץ ואינו מחושב מחדש מתוך הרווח.
             </p>
           </div>
         </div>
@@ -206,10 +203,7 @@
           </div>
           <div class="card">
             <h2 class="section-title">תשלומים שבוצעו</h2>
-            <div class="field">
-              <label>ביטוח לאומי ששולם עד ספטמבר (₪)</label
-              ><input type="number" min="0" data-key="niPaid" />
-            </div>
+            <div class="metric"><span>ביטוח לאומי ששולם עד ספטמבר</span><b id="niPaid"></b></div>
             <div class="notice">
               זהו אומדן למעקב, לא דרישת תשלום רשמית. סכום המקדמה החודשית צריך
               להיבדק מול הודעת המקדמות והסטטוס האישי בביטוח הלאומי.
@@ -228,10 +222,7 @@
             <div class="metric">
               <span>הפקדה מומלצת לשנה</span><b id="pensionGoal2"></b>
             </div>
-            <div class="field spaced-field">
-              <label>הפקדות שבוצעו עד כה (₪)</label
-              ><input type="number" min="0" data-key="pensionPaid" />
-            </div>
+            <div class="metric"><span>הפקדות שבוצעו עד כה</span><b id="pensionPaid"></b></div>
             <div class="metric">
               <span>נותר להשלמת פנסיית חובה</span
               ><b id="pensionMandatoryGap"></b>
@@ -249,10 +240,7 @@
             <div class="metric">
               <span>הפקדה מומלצת לשנה</span><b id="studyGoal2"></b>
             </div>
-            <div class="field spaced-field">
-              <label>הפקדות שבוצעו עד כה (₪)</label
-              ><input type="number" min="0" data-key="studyPaid" />
-            </div>
+            <div class="metric"><span>הפקדות שבוצעו עד כה</span><b id="studyPaid"></b></div>
             <div class="metric">
               <span>נותר להשלמת ההמלצה</span><b id="studyRemaining2"></b>
             </div>
@@ -269,20 +257,20 @@
       <section id="settings" class="tab hidden">
         <div class="card">
           <h2 class="section-title">נתוני בסיס והנחות לחישוב</h2>
-          <div class="field-grid" id="settingsFields"></div>
+          <div id="settingsFields"></div>
           <div class="notice">
-            עריכת הכנסה חייבת, נקודות זיכוי או תחזית מחזור לא מחשבת אוטומטית מס
-            חדש. כדי לא להציג אומדן מס מטעה יש לעדכן את שדה ״מס שנתי לפני
-            הפקדות״ בהתאם לחישוב מס מקצועי. כל המספרים בתחילת הדרך הם אומדני תיק
-            2026 מהשיחה הקודמת, אינם שומה או הוראת תשלום.
+            הערכים מוצגים כפי שנטענו מהקובץ. המס השנתי אינו מחושב מחדש מתוך
+            הכנסה חייבת, נקודות זיכוי או תחזית מחזור, ויש לוודא שהוא מבוסס על
+            חישוב מס מקצועי. המספרים הם אומדנים, ואינם שומה או הוראת תשלום.
           </div>
         </div>
       </section>
       <div class="foot">
-        אפליקציה מקומית: המידע נשמר בדפדפן הנוכחי בלבד (localStorage). לא מועבר
-        לשרת. מומלץ לייצא גיבוי לפני מעבר למכשיר אחר.
+        תצוגה בלבד: הקובץ נקרא בדפדפן, אינו נשמר ואינו מועבר לשרת. רענון הדף
+        מנקה את כל הנתונים.
       </div>
     </main>
+    <script src="vendor/xlsx.full.min.js" defer></script>
     <script src="Finance-Dashboard-2026-Share.js" defer></script>
   </body>
 </html>

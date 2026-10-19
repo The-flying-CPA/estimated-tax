@@ -1,35 +1,37 @@
-const defaults = {
-  rev9: 738000,
-  monthlyQ4: 82000,
-  profit: 773348,
-  credits: 4.5,
-  tax: 236990,
-  taxAfter: 213103,
-  niBase: 59183,
-  niCeiling: 51910,
-  niMonthly: 8550,
-  pensionMandatory: 14044,
-  pension: 38412,
-  study: 20566,
-  pensionSave: 17285,
-  studySave: 6602,
-  taxPaid: 0,
-  withheld: 0,
-  niPaid: 0,
-  pensionPaid: 0,
-  studyPaid: 0,
-};
-const KEY = "finance_dash_2026_v1";
-let state = { ...defaults };
+const KEYS = [
+  "rev9",
+  "monthlyQ4",
+  "profit",
+  "credits",
+  "tax",
+  "taxAfter",
+  "niBase",
+  "niCeiling",
+  "niMonthly",
+  "pensionMandatory",
+  "pension",
+  "study",
+  "pensionSave",
+  "studySave",
+  "taxPaid",
+  "withheld",
+  "niPaid",
+  "pensionPaid",
+  "studyPaid"
+];
+const empty = () => Object.fromEntries(KEYS.map((k) => [k, 0]));
+let state = empty(),
+  loaded = false;
+// Remove anything saved by earlier versions of this app.
 try {
-  const loaded = JSON.parse(localStorage.getItem(KEY) || "{}");
-  for (const k of Object.keys(defaults))
-    if (typeof loaded[k] === "number" && Number.isFinite(loaded[k]))
-      state[k] = loaded[k];
+  localStorage.removeItem("finance_dash_2026_v1");
 } catch {}
-const fmt = (n) => Math.round(n).toLocaleString("he-IL") + " ₪",
+const fmt = (n) =>
+    loaded ? Math.round(n).toLocaleString("he-IL") + " ₪" : "—",
   pct = (n) =>
-    (n * 100).toLocaleString("he-IL", { maximumFractionDigits: 2 }) + "%",
+    loaded
+      ? (n * 100).toLocaleString("he-IL", { maximumFractionDigits: 2 }) + "%"
+      : "—",
   put = (id, v) => {
     const el = document.getElementById(id);
     if (el) el.textContent = v;
@@ -57,7 +59,7 @@ let fields = document.getElementById("settingsFields");
 fields.innerHTML = settings
   .map(
     ([k, label]) =>
-      `<div class="field"><label for="s-${k}">${label} (${k === "credits" ? "נקודות" : "₪"})</label><input id="s-${k}" type="number" min="0" step="${k === "credits" ? "0.25" : "1"}" data-key="${k}"></div>`,
+      `<div class="metric"><span>${label}</span><b id="s-${k}"></b></div>`,
   )
   .join("");
 function render() {
@@ -107,12 +109,17 @@ function render() {
     studyGoal2: num("study"),
     studyRemaining2: sRemain,
     studyTaxSave: num("studySave"),
+    taxPaid: num("taxPaid"),
+    withheld: num("withheld"),
+    niPaid: num("niPaid"),
+    pensionPaid: num("pensionPaid"),
+    studyPaid: num("studyPaid"),
   };
   Object.entries(money).forEach(([k, v]) => put(k, fmt(v)));
   ["advanceGap", "taxGap2", "niGap"].forEach(
     (id) =>
       (document.getElementById(id).className =
-        money[id] > 0 ? "negative" : "positive"),
+        !loaded ? "" : money[id] > 0 ? "negative" : "positive"),
   );
   ["advanceRate", "taxRate2"].forEach((id) => put(id, pct(r)));
   put("advanceCoverage", pct(t9 ? paid / t9 : 0));
@@ -141,20 +148,19 @@ function render() {
     col.append(label);
     bar.appendChild(col);
   });
-  document.querySelectorAll("input[data-key]").forEach((el) => {
-    if (document.activeElement !== el) el.value = state[el.dataset.key];
-  });
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {}
+  settings.forEach(([k]) =>
+    put(
+      `s-${k}`,
+      k === "credits"
+        ? loaded
+          ? num(k).toLocaleString("he-IL")
+          : "—"
+        : fmt(num(k)),
+    ),
+  );
+  put("chipCredits", loaded ? num("credits").toLocaleString("he-IL") : "—");
+  document.getElementById("emptyState").classList.toggle("hidden", loaded);
 }
-document.addEventListener("input", (e) => {
-  if (!e.target.matches("input[data-key]")) return;
-  let k = e.target.dataset.key,
-    v = Number(e.target.value);
-  state[k] = Number.isFinite(v) ? Math.max(0, v) : 0;
-  render();
-});
 function tab(id) {
   document
     .querySelectorAll(".tab")
@@ -173,35 +179,127 @@ document
   .querySelectorAll("[data-goto]")
   .forEach((el) => (el.onclick = () => tab(el.dataset.goto)));
 document.getElementById("reset").onclick = () => {
-  if (confirm("להחזיר את כל הנתונים לברירות המחדל?")) {
-    state = { ...defaults };
-    render();
-  }
+  state = empty();
+  loaded = false;
+  render();
 };
+const LABELS = Object.fromEntries([
+  ...settings,
+  ["taxPaid", "מקדמות מס הכנסה ששולמו עד ספטמבר"],
+  ["withheld", "ניכוי מס במקור עד ספטמבר"],
+  ["niPaid", "ביטוח לאומי ששולם עד ספטמבר"],
+  ["pensionPaid", "הפקדות לפנסיה שבוצעו עד כה"],
+  ["studyPaid", "הפקדות לקרן השתלמות שבוצעו עד כה"],
+]);
+const toNum = (v) => {
+  if (typeof v === "number") return v;
+  if (typeof v !== "string") return NaN;
+  const t = v.replace(/[\s,₪]/g, "");
+  return t ? Number(t) : NaN;
+};
+// Row labels in the tax-calculation workbook (sheets "תחזית ותיאום" and
+// "מקדמות וחיסכון"). [label, "last"] takes the row's last numeric cell instead
+// of the first, e.g. the "after pension and study fund" column of the tax table.
+const ALIASES = {
+  rev9: ["הכנסות ינואר–ספטמבר"],
+  monthlyQ4: ["הכנסה חודשית מאוקטובר עד דצמבר"],
+  profit: [
+    "הכנסה מעסק לפני ניכויים אישיים",
+    "הכנסה חייבת מעסק — לפני ניכויים אישיים",
+  ],
+  tax: ["מס הכנסה נטו — חבות שנתית"],
+  taxAfter: [["מס הכנסה נטו — חבות שנתית", "last"]],
+  niBase: ["הכנסה משוערת לאחר ניכויים מותרים, לפני תקרה"],
+  niCeiling: ["תקרת הכנסה חודשית לדמי ביטוח"],
+  niMonthly: ["ביטוח לאומי ובריאות — אומדן לחודש"],
+  pensionMandatory: ["חובת הפקדה בסיסית לפנסיה (אם חלה)"],
+  pension: ["יעד הפקדה לפנסיה למיצוי הטבת מס"],
+  study: ["יעד השתלמות כולל הטבת רווחים"],
+  pensionSave: ["מס הכנסה שנחסך בפנסיה"],
+  studySave: ["מס הכנסה שנחסך בהשתלמות"],
+  withheld: ["ניכוי מס במקור מלקוחות עד ספטמבר"],
+  niPaid: ["מקדמות ביטוח לאומי ששולמו עד ספטמבר"],
+  pensionPaid: ["הפקדות לפנסיה שכבר בוצעו ב־2026"],
+  studyPaid: ["הפקדות להשתלמות שכבר בוצעו ב־2026"],
+};
+// Ignore whitespace, case and the kind of dash (-, –, —, maqaf) when comparing labels.
+const norm = (s) =>
+  String(s ?? "")
+    .replace(/[‐-―־-]/g, "-")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+// Normalized label -> fields read from that row: field key, template label, aliases.
+const ROWS = new Map();
+const addRow = (label, k, pick = "first") => {
+  const t = norm(label);
+  if (!ROWS.has(t)) ROWS.set(t, []);
+  ROWS.get(t).push({ k, pick });
+};
+KEYS.forEach((k) => {
+  addRow(k, k);
+  addRow(LABELS[k], k);
+  (ALIASES[k] || []).forEach((a) => {
+    const [label, pick] = [a].flat();
+    addRow(label, k, pick);
+  });
+});
+// The first cell with a known label marks the row; its value is the first (or
+// last) numeric cell after the label. The first occurrence of each field wins.
+function readSheet(buf) {
+  const wb = XLSX.read(buf, { type: "array" }),
+    data = {};
+  for (const name of wb.SheetNames)
+    for (const row of XLSX.utils.sheet_to_json(wb.Sheets[name], {
+      header: 1,
+      raw: true,
+    })) {
+      const i = row.findIndex((c) => ROWS.has(norm(c)));
+      if (i < 0) continue;
+      const nums = row.slice(i + 1).map(toNum).filter(Number.isFinite);
+      if (!nums.length) continue;
+      for (const { k, pick } of ROWS.get(norm(row[i])))
+        if (!(k in data)) data[k] = pick === "last" ? nums.at(-1) : nums[0];
+    }
+  return data;
+}
 document.getElementById("export").onclick = () => {
-  const blob = new Blob(
-      [JSON.stringify({ version: 1, year: 2026, data: state }, null, 2)],
-      { type: "application/json" },
-    ),
-    a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "finance-dashboard-2026.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  const ws = XLSX.utils.aoa_to_sheet([
+      ["שדה", "תיאור", "ערך"],
+      ...KEYS.map((k) => [k, LABELS[k], 0]),
+    ]),
+    wb = XLSX.utils.book_new();
+  ws["!cols"] = [{ wch: 18 }, { wch: 40 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, ws, "נתונים");
+  wb.Workbook = { Views: [{ RTL: true }] };
+  XLSX.writeFile(wb, "finance-dashboard-2026-template.xlsx");
 };
 document.getElementById("importBtn").onclick = () =>
   document.getElementById("importFile").click();
 document.getElementById("importFile").onchange = async (e) => {
   try {
-    let content = JSON.parse(await e.target.files[0].text()),
+    const file = e.target.files[0];
+    let data;
+    if (/\.json$/i.test(file.name)) {
+      const content = JSON.parse(await file.text());
       data = content.data || content;
-    for (let k of Object.keys(defaults))
-      if (typeof data[k] === "number" && Number.isFinite(data[k]))
-        state[k] = data[k];
+    } else data = readSheet(await file.arrayBuffer());
+    let next = empty(),
+      found = 0;
+    for (let k of KEYS) {
+      const v = toNum(data[k]);
+      if (Number.isFinite(v)) {
+        next[k] = Math.max(0, v);
+        found++;
+      }
+    }
+    if (!found) throw new Error("no fields");
+    state = next;
+    loaded = true;
     render();
-    alert("הנתונים נטענו");
   } catch {
-    alert("לא ניתן לטעון את הקובץ. יש לייבא JSON שיוצא מהאפליקציה.");
+    alert(
+      "לא ניתן לטעון את הקובץ. יש לטעון קובץ Excel, CSV או JSON במבנה קובץ התבנית.",
+    );
   }
   e.target.value = "";
 };
