@@ -32,7 +32,7 @@
             type="file"
             id="importFile"
             class="fileinput"
-            accept=".xlsx,.xls,.csv,.json"
+            accept=".json,application/json"
           /><button class="btn" id="print">הדפסה</button
           ><button class="btn primary" id="reset">ניקוי</button>
         </div>
@@ -43,7 +43,7 @@
         ><span class="chip">נתוני פעילות עד ספטמבר</span>
       </div>
       <div class="notice" id="emptyState">
-        לא נטענו נתונים. יש לטעון קובץ Excel ‏(xlsx/xls), CSV או JSON באמצעות ״טעינת קובץ״. ניתן להוריד
+        לא נטענו נתונים. יש לטעון קובץ JSON באמצעות ״טעינת קובץ״. ניתן להוריד
         ״קובץ תבנית״ ולמלא בו את הערכים. הנתונים מוצגים בלבד ואינם נשמרים.
       </div>
       <section id="overview" class="tab">
@@ -270,7 +270,6 @@
         מנקה את כל הנתונים.
       </div>
     </main>
-    <script src="vendor/xlsx.full.min.js" defer></script>
     <script src="Finance-Dashboard-2026-Share.js" defer></script>
   </body>
 </html>

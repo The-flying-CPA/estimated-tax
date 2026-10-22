@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "year": 2026,
+  "data": {
+    "rev9": 0,
+    "monthlyQ4": 0,
+    "profit": 0,
+    "credits": 0,
+    "tax": 0,
+    "taxAfter": 0,
+    "niBase": 0,
+    "niCeiling": 0,
+    "niMonthly": 0,
+    "pensionMandatory": 0,
+    "pension": 0,
+    "study": 0,
+    "pensionSave": 0,
+    "studySave": 0,
+    "taxPaid": 0,
+    "withheld": 0,
+    "niPaid": 0,
+    "pensionPaid": 0,
+    "studyPaid": 0
+  }
+}

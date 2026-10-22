@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "finance-dashboard-2026.schema.json",
+  "title": "קובץ נתונים לדשבורד מקדמות וחיסכון 2026",
+  "description": "מבנה מומלץ: אובייקט עם השדה data. מתקבל גם אובייקט שטוח עם שדות הנתונים ברמה העליונה. כל השדות אופציונליים, אך נדרש לפחות שדה מוכר אחד. שדה חסר מוצג כ-0, ערך שלילי מוצג כ-0, ושדות לא מוכרים או ערכים שאינם מספר מתעלמים מהם.",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": ["data"],
+      "properties": {
+        "version": { "const": 1, "description": "גרסת המבנה (אינפורמטיבי בלבד)" },
+        "year": { "const": 2026, "description": "שנת המס (אינפורמטיבי בלבד)" },
+        "data": { "$ref": "#/$defs/data" }
+      }
+    },
+    { "$ref": "#/$defs/data" }
+  ],
+  "$defs": {
+    "amount": { "type": "number", "minimum": 0 },
+    "data": {
+      "type": "object",
+      "properties": {
+        "rev9": { "$ref": "#/$defs/amount", "description": "מחזור ינואר–ספטמבר (₪)" },
+        "monthlyQ4": { "$ref": "#/$defs/amount", "description": "תחזית מחזור חודשי באוקטובר–דצמבר (₪)" },
+        "profit": { "$ref": "#/$defs/amount", "description": "הכנסה חייבת לפני ניכויים אישיים (₪)" },
+        "credits": { "$ref": "#/$defs/amount", "description": "נקודות זיכוי (מספר, למשל 4.5)" },
+        "tax": { "$ref": "#/$defs/amount", "description": "מס הכנסה שנתי לפני הפקדות (₪)" },
+        "taxAfter": { "$ref": "#/$defs/amount", "description": "מס הכנסה לאחר הפקדות מלאות (₪)" },
+        "niBase": { "$ref": "#/$defs/amount", "description": "הכנסה חודשית לביטוח לאומי לפני תקרה (₪)" },
+        "niCeiling": { "$ref": "#/$defs/amount", "description": "תקרת בסיס חודשית לביטוח לאומי (₪)" },
+        "niMonthly": { "$ref": "#/$defs/amount", "description": "אומדן מקדמה חודשית לביטוח לאומי (₪)" },
+        "pensionMandatory": { "$ref": "#/$defs/amount", "description": "פנסיית חובה שנתית (₪)" },
+        "pension": { "$ref": "#/$defs/amount", "description": "יעד שנתי לפנסיה (₪)" },
+        "study": { "$ref": "#/$defs/amount", "description": "יעד שנתי לקרן השתלמות (₪)" },
+        "pensionSave": { "$ref": "#/$defs/amount", "description": "חיסכון במס מפנסיה בהפקדה מלאה (₪)" },
+        "studySave": { "$ref": "#/$defs/amount", "description": "חיסכון במס מקרן השתלמות בהפקדה מלאה (₪)" },
+        "taxPaid": { "$ref": "#/$defs/amount", "description": "מקדמות מס הכנסה ששולמו עד ספטמבר (₪)" },
+        "withheld": { "$ref": "#/$defs/amount", "description": "ניכוי מס במקור עד ספטמבר (₪)" },
+        "niPaid": { "$ref": "#/$defs/amount", "description": "ביטוח לאומי ששולם עד ספטמבר (₪)" },
+        "pensionPaid": { "$ref": "#/$defs/amount", "description": "הפקדות לפנסיה שבוצעו עד כה (₪)" },
+        "studyPaid": { "$ref": "#/$defs/amount", "description": "הפקדות לקרן השתלמות שבוצעו עד כה (₪)" }
+      }
+    }
+  }
+}
